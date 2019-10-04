@@ -1,0 +1,167 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage[makeroom]{cancel}
+\usepackage[english]{babel}
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{color}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{physics}
+\usepackage{dsfont}
+
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{units}
+\usepackage{epstopdf}
+\usepackage{cite}
+\usepackage{braket}
+\usepackage{url}
+
+\usepackage[margin=1cm]{caption}
+\usepackage[outer=1.2in,inner=1.2in]{geometry}
+\newcommand{\SL}{Schr\"{o}dinger }
+
+%------------------------------------------------Forside
+\title{Eigenvalue Problems \\
+		Solving \SL Equation
+		}
+\author{Andreas Fagerheim}
+\date{3. October 2016}
+
+
+\begin{document}
+\maketitle
+	
+
+%------------------------------------------------Abstract
+\pagenumbering{roman}
+\begin{abstract}
+This article study eigenvalue problems and implementation of the Jacobis´s method for solving said problems. Looking at three different cases that all can be solved numerically with Jacobis rotation method. The cases being studied is a buckling beam and quantum dots in three dimensions with two and three electrons , respectively. The numerically implemented jacobi method for finding eigenvalues and eigenvectors will throughout the study be compared with the analytical solutions to make out its validity and effectiveness.
+\end{abstract}
+\begin{flushright}
+	\textsc{Andreas Fagerheim \\
+	Student FYS 4150\\
+	September 3, 2019}
+	\end{flushright}
+
+\cleardoublepage
+\section{Introduction}
+
+%------------------------------------------------Artikkelstart
+
+
+
+\section{Mathematichal intermezzo}\label{sec:math}
+To find the eigenvalues we will use the Jacobis method witch key concept is using unitary transformations of matrices to transform them in to diagonalized matrices. %The preservation of the dot product and the orthogonality is a key factor for the algorithm used later in the article.
+If we consider a basis vector $\mathbf{v}_i$;
+$$\mathbf{v}_i = \begin{bmatrix}
+					v_{i1} \\
+					\cdots\\
+					\cdots\\
+					v_{in}
+\end{bmatrix}
+$$
+and  assume it is orthogonal, that is
+$$\mathbf{v}_j^T \mathbf{v}_i = \delta_{ij}$$
+If we use unitary transformation on $\mathbf{v}_i$ we see that the dot product and orthogonality is preserved. 
+$$
+\mathbf{w}_i = \mathbf{U}\mathbf{v}_i
+$$
+$$
+\mathbf{w}_j^T\mathbf{w}_i = (\mathbf{U}\mathbf{v}_j)^T \mathbf{U}\mathbf{v}_i
+$$$$
+= \mathbf{v}_j^T(\mathbf{U}^T \mathbf{U})\mathbf{v}_i = \mathbf{v}_j^T\mathbf{I}\mathbf{v}_i 
+$$
+$$
+\mathbf{w}_j^T\mathbf{w}_i = \mathbf{v}_j^T\mathbf{v}_i = \delta_{ij}
+$$
+Where $\mathbf{U}$ is a unitary matrix, and $(\mathbf{U}^T \mathbf{U}) =\mathbf{I} $.
+
+\section{Algorithm}
+
+\subsection{Jacobi's method}
+
+The prinsiple of Jacobis method is to rotate matrices through rotations witch us an unitary transformations. By each rotation two elements from the off diagonal will be eliminated to zero and in the end the matrix will be diagonalized. First looking at a simple two-dimensional, symmetric matrix
+\begin{equation}
+	A = \begin{bmatrix}
+				a_{11} & a_{12} \\
+				a_{21} & a_{22}
+			\end{bmatrix}
+\end{equation}
+where $a_{12}=a_{21}$ since $A$ is symmetric. The orthogonal rotation matrix
+\begin{equation}
+	S = \begin{bmatrix}
+		\cos{\theta} & -\sin{\theta} \\
+\		sin{\theta} & \cos{\theta}
+\end{bmatrix}
+\end{equation}
+makes sure we can make an unitary transformation, where we rotate an angle $\theta$. Substituting $c=\cos{\theta}$ and $s=\sin{\theta}$ makes for a simpler way of writing the unitary transformation
+\begin{equation}
+	B = S^{-1}AS=\begin{bmatrix}
+		a_{11}c^2+2a_{12}cs + a_{22}s^2 & (a_{22}-a_{11})cs+a_{12}(c^2-s^2) \\
+(		a_{22}-a_{11})cs + a_{12}(c^2-s^2) & a_{11}s^2-2a_{12}s+a_{22}c^2
+\end{bmatrix}
+\end{equation}
+We now want to fix the angle so the two off-diagonal elements in $B$ equals zero. This gives us the equation:
+\begin{equation}
+(a_{22}-a_{11})cs + a_{12}(c^2-s^2)=0
+\end{equation}
+Defining the quantities $tan(\theta) = t = s/c$  gives
+\begin{equation}
+\tau = \cot{2\theta} = \frac{a_{11}-a_{22}}{2a_{12}}
+\end{equation}
+
+obtaining the quadratic equation 
+\begin{equation}
+t^2-2\tau t-1 =0
+\end{equation}
+which has two roots. Choosing the smallest angle of the two will ensure $\lvert \theta \rvert \leq \pi/4 $ and minimizes the difference between $ A $ and $ B $.
+\begin{equation}
+t = -\tau \pm \sqrt{1+{\tau}^2}
+\end{equation}
+The eigenvalues can now be expressed in terms of $t$. The diagonalized matrix will look like this
+\begin{equation}
+	S^{-1}AS = \begin{bmatrix}
+		a_{11} & 0 \\
+		0 & a_{22}
+	\end{bmatrix}
+\end{equation}
+
+For the general algorithm in the case of an $n \times n$ matrix the algorithm for the $2\times2$-case can be extended. The general orthogonal rotation matrix will take the form 
+\begin{equation}
+S= \begin{bmatrix}
+1 & \hdots & 0 &\hdots & 0 & \hdots & 0 \\
+    \vdots & \ddots & \vdots & {} & \vdots & {} & \vdots \\
+    0 & \hdots & cos\theta &\hdots & -sin\theta & \hdots & 0 \\
+    \vdots & {} & \vdots & \ddots & \vdots & {} & \vdots \\
+    0 & \hdots & sin\theta &\hdots & cos\theta & \hdots & 0 \\
+    \vdots & {} & \vdots & {} & \vdots & \ddots & \vdots \\
+0 & \hdots & 0 &\hdots & 0 & \hdots & 1
+\end{bmatrix}
+\end{equation}
+where we can do the same substitution as earlier$c= \cos{\theta}$ and $s=\sin{\theta}$.
+
+As above we can perform the corresponding transformation giving us a set of equations
+\begin{align}
+\label{eq:rotation}
+\begin{split}
+  a_{ik} &= a_{ki} = ca_{hi} - sa_{il} \\
+  a_{il} &= a_{li} = ca_{il} - sa_{ik} \\
+  a_{kl} &= a_{lk} = (c^2 - s^2)a_{kl} + sc(a_{kk} - a_{ll}) = 0\\
+  a_{kk} &= c^2a_{kk} + s^2a_{ll} - 2sca_{kl}\\
+  a_{ll} &= s^2a_{kk} + c^2a_{ll} + 2sca_{kl}
+\end{split}
+\end{align}
+Continuing doing transformations until the biggest off-diagonal element satisfies
+\begin{equation}
+	max(a^2_{ij}) \leq \epsilon 
+\end{equation} 
+where $\epsilon$ typically is in the range $10^{-8}$.
+\end{document}
+
